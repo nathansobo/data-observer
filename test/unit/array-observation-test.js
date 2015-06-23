@@ -1,20 +1,34 @@
+console.log("testtt");
+
 import observe from '../../src/observe';
 
 describe('ArrayObservation', () => {
-  it('summarizes disjoint splices on the array', (done) => {
-    let array = ['a', 'b', 'c', 'd', 'e'];
-    let observation = observe(array);
+  var observation;
+  var observedArray;
+  var referenceArray;
 
-    let disposable = observation.onDidChange((change) => {
-      expect(change).to.eql([
-        {index: 1, removed: ['b'], addedCount: 2},
-        {index: 4, removed: ['d'], addedCount: 2}
-      ]);
+  function awaitObservedChanges(fn) {
+    let disposable = observation.onDidChange((changes) => {
       disposable.dispose();
+      for (let {index, removed, addedCount} of changes) {
+        let result = referenceArray.splice(index, removed.length, observedArray.slice(index, index + addedCount));
+        expect(result).to.eql(removed);
+      }
+      fn();
+    });
+  }
+
+  it('summarizes disjoint splices on the array', (done) => {
+    observedArray = ['a', 'b', 'c', 'd', 'e'];
+    referenceArray = observedArray.slice();
+    observation = observe(observedArray);
+
+    awaitObservedChanges(() => {
+      expect(referenceArray).to.eql(observedArray);
       done();
     });
 
-    array.splice(1, 1, 'f', 'g');
-    array.splice(4, 1, 'h', 'i');
+    observedArray.splice(1, 1, 'f', 'g');
+    observedArray.splice(4, 1, 'h', 'i');
   });
 });

@@ -80,7 +80,8 @@ gulp.task('coverage', function(done) {
 
 
 // Lint and run our tests
-gulp.task('test', ['lint-src', 'lint-test'], test);
+gulp.task('test', /*['lint-src', 'lint-test'], */ test);
+// gulp.task('test', ['lint-src', 'lint-test'], test);
 
 // Run the headless unit tests as you make changes.
 gulp.task('watch', ['test'], function() {
