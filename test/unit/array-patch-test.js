@@ -10,8 +10,8 @@ describe('ArrayPatch', () => {
   });
 
   function verifyPatch(patch, input, output) {
-    for (let {index, removed, addedCount} of patch.getChanges()) {
-      input.splice(index, removed, ...output.slice(index, index + addedCount));
+    for (let {index, removedCount, addedCount} of patch.getChanges()) {
+      input.splice(index, removedCount, ...output.slice(index, index + addedCount));
     }
     expect(input).to.eql(output);
   }
@@ -20,9 +20,13 @@ describe('ArrayPatch', () => {
     expect(patch.getChanges()).to.eql([]);
   });
 
-  it.only('supports disjoint splices', () => {
-    let removed = output.splice(2, 2, 'h');
-    patch.splice(2, removed, 1);
+  it('supports disjoint splices', () => {
+    output.splice(2, 2, 'h');
+    patch.splice(2, 2, 1);
+
+    output.splice(4, 1, 'i', 'j');
+    patch.splice(4, 1, 2);
+
     verifyPatch(patch, input, output);
   });
 });
