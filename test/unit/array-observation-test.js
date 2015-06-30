@@ -1,4 +1,4 @@
-console.log("testtt");
+'use babel';
 
 import observe from '../../src/observe';
 

@@ -1,3 +1,5 @@
+'use babel';
+
 import ArrayPatch from '../../src/array-patch';
 
 describe('ArrayPatch', () => {

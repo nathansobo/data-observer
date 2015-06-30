@@ -1,3 +1,5 @@
+'use babel';
+
 import ArrayObservation from './array-observation';
 
 export default function observe(object) {

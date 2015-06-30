@@ -2,7 +2,7 @@
   "name": "data-observer",
   "version": "0.0.1",
   "description": "Unobtrusively observe essential application state.",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "gulp",
     "build": "gulp build",
@@ -26,6 +26,7 @@
     "babel": "^5.0.0",
     "chai": "^2.0.0",
     "del": "^1.1.1",
+    "glob": "^5.0.12",
     "gulp": "^3.8.10",
     "gulp-babel": "^5.0.0",
     "gulp-istanbul": "^0.6.0",

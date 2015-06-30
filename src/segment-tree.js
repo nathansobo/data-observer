@@ -1,9 +1,14 @@
+'use babel';
+
+import Random from 'random-seed';
+
 const NOT_DONE = {done: false};
 const DONE = {done: true};
 
 export default class SegmentTree {
-  constructor() {
+  constructor(randomSeed = Date.now()) {
     this.root = null;
+    this.randomGenerator = new Random(randomSeed);
   }
 
   buildIterator() {
@@ -12,6 +17,10 @@ export default class SegmentTree {
 
   buildIteratorAtStart() {
     return new SegmentTreeIterator(this, true);
+  }
+
+  generateRandom() {
+    return this.randomGenerator.random();
   }
 
   toHTML() {
@@ -170,21 +179,22 @@ class SegmentTreeIterator {
   }
 
   createRoot(outputIndex, isEndOfChange) {
-    this.tree.root = new Node(null, outputIndex, outputIndex, isEndOfChange);
+    this.tree.root = new Node(null, this.tree.generateRandom(), outputIndex, outputIndex, isEndOfChange);
     this.setNode(this.tree.root);
   }
 
   createLeftChild(outputIndex, isEndOfChange) {
     let outputLeftExtent = outputIndex - this.outputOffset;
     let inputLeftExtent = Math.min(outputLeftExtent, this.node.inputLeftExtent);
-    this.node.left = new Node(this.node, inputLeftExtent, outputLeftExtent, isEndOfChange);
+    this.node.left = new Node(this.node, this.tree.generateRandom(), inputLeftExtent, outputLeftExtent, isEndOfChange);
     this.descendLeft();
+    this.bubbleNodeUp();
   }
 
   createRightChild(outputIndex, maxInputIndex, isEndOfChange) {
     let outputLeftExtent = outputIndex - this.outputEnd;
     let inputLeftExtent = Math.min(outputLeftExtent, maxInputIndex - this.inputEnd);
-    this.node.right = new Node(this.node, inputLeftExtent, outputLeftExtent, isEndOfChange);
+    this.node.right = new Node(this.node, this.tree.generateRandom(), inputLeftExtent, outputLeftExtent, isEndOfChange);
     this.descendRight();
 
     let node = this.node;
@@ -193,16 +203,93 @@ class SegmentTreeIterator {
       node.parent.outputExtent += outputLeftExtent;
       node = node.parent;
     }
+
+    this.bubbleNodeUp();
+  }
+
+  bubbleNodeUp() {
+    while (this.node.parent && this.node.priority < this.node.parent.priority) {
+      if (this.node === this.node.parent.left) {
+        this.rotateRight();
+      } else {
+        this.rotateLeft();
+      }
+    }
+  }
+
+  rotateRight() {
+    let root = this.node.parent;
+    let pivot = this.node;
+
+    if (root.parent) {
+      if (root === root.parent.left) {
+        root.parent.left = pivot;
+      } else {
+        root.parent.right = pivot;
+      }
+    } else {
+      this.tree.root = pivot;
+    }
+    pivot.parent = root.parent;
+
+    root.left = pivot.right;
+    if (pivot.right) {
+      pivot.right.parent = root;
+    }
+
+    pivot.right = root;
+    root.parent = pivot;
+
+    root.inputLeftExtent = root.inputLeftExtent - pivot.inputLeftExtent;
+    root.inputExtent = root.inputExtent - pivot.inputLeftExtent;
+    pivot.inputExtent = pivot.inputLeftExtent + root.inputExtent;
+
+    root.outputLeftExtent = root.outputLeftExtent - pivot.outputLeftExtent;
+    root.outputExtent = root.outputExtent - pivot.outputLeftExtent;
+    pivot.outputExtent = pivot.outputLeftExtent + root.outputExtent;
+  }
+
+  rotateLeft() {
+    let root = this.node.parent;
+    let pivot = this.node;
+
+    if (root.parent) {
+      if (root === root.parent.left) {
+        root.parent.left = pivot;
+      } else {
+        root.parent.right = pivot;
+      }
+    } else {
+      this.tree.root = pivot;
+    }
+    pivot.parent = root.parent;
+
+    root.right = pivot.left;
+    if (pivot.left) {
+      pivot.left.parent = root;
+    }
+
+    pivot.left = root;
+    root.parent = pivot;
+
+    pivot.inputLeftExtent = root.inputLeftExtent + pivot.inputLeftExtent;
+    pivot.inputExtent = pivot.inputLeftExtent + (pivot.right ? pivot.right.inputExtent : 0);
+    root.inputExtent = root.inputLeftExtent + (root.right ? root.right.inputExtent : 0);
+
+    pivot.outputLeftExtent = root.outputLeftExtent + pivot.outputLeftExtent;
+    pivot.outputExtent = pivot.outputLeftExtent + (pivot.right ? pivot.right.outputExtent : 0);
+    root.outputExtent = root.outputLeftExtent + (root.right ? root.right.outputExtent : 0);
   }
 }
 
 let idCounter = 0;
 
 class Node {
-  constructor(parent, inputLeftExtent, outputLeftExtent, isEndOfChange) {
+  constructor(parent, priority, inputLeftExtent, outputLeftExtent, isEndOfChange) {
     this.id = ++idCounter;
 
     this.parent = parent;
+    this.priority = priority;
     this.inputLeftExtent = inputLeftExtent;
     this.outputLeftExtent = outputLeftExtent;
     this.inputExtent = inputLeftExtent;
@@ -213,7 +300,7 @@ class Node {
   toHTML() {
     let s = '<style>';
     s += 'table { width: 100%; }'
-    s += 'td { width: 50%; text-align: center; border: 1px solid gray; }'
+    s += 'td { width: 50%; text-align: center; border: 1px solid gray; white-space: nowrap; }'
     s += '</style>';
 
     s += '<table>'

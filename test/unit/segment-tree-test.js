@@ -1,16 +1,15 @@
+'use babel';
+
 import Random from 'random-seed';
 import SegmentTree from '../../src/segment-tree';
 
 describe('SegmentTree', () => {
-  let randomSeed, tree;
-
-  beforeEach(() => {
-    randomSeed = Date.now();
-    tree = new SegmentTree(randomSeed);
-  });
+  let randomSeed;
 
   describe('insert', () => {
     it('inserts a segment boundary at the given index', () => {
+      tree = new SegmentTree();
+
       tree.buildIterator().insert(5);
       tree.buildIterator().insert(10);
       tree.buildIterator().insert(7);
@@ -31,32 +30,38 @@ describe('SegmentTree', () => {
     });
 
     it('maintains insertion indices after rebalancing', () => {
-      let random = new Random(randomSeed);
+      let indices, tree;
 
-      let indices = [];
+      for (var i = 0; i < 1; i++) {
+        global.debug = false
+        indices = []
+        randomSeed = Date.now();
+        let random = new Random(randomSeed);
+        tree = new SegmentTree(randomSeed)
 
-      for (var i = 0; i < 50; i++) {
-        let index = random(200);
-        if (indices.indexOf(index) === -1) {
-          indices.push(index);
+        for (var j = 0; j < 100; j++) {
+          let index = random(200);
+          if (indices.indexOf(index) === -1) {
+            indices.push(index);
+          }
+          tree.buildIterator().insert(index);
+
+          validateTree();
         }
-        tree.buildIterator().insert(index);
-
-        if (i === 2) {
-          saveHTML(tree);
-        }
-
-        validateTree()
       }
 
       function validateTree() {
         indices.sort((a, b) => a - b);
+
         let iterator = tree.buildIteratorAtStart();
+
         for (var i = 0; i < indices.length; i++) {
-          if (i > 0) {
-            expect(iterator.getOutputStart()).to.equal(indices[i - 1]);
+          if (i > 0 && iterator.getOutputStart() !== indices[i - 1]) {
+            throw new Error(`Expected ${iterator.getOutputStart()} to be ${indices[i - 1]}. Seed: ${randomSeed}`);
           }
-          expect(iterator.getOutputEnd()).to.equal(indices[i]);
+          if (iterator.getOutputEnd() !== indices[i]) {
+            throw new Error(`Expected ${iterator.getOutputEnd()} to be ${indices[i]}. Seed: ${randomSeed}`);
+          }
           iterator.next()
         }
       }
@@ -64,9 +69,10 @@ describe('SegmentTree', () => {
   });
 });
 
-function saveHTML(object) {
+function saveHTML(object, identifier='') {
   let fs = require('fs');
 
-  console.log('saving to', __dirname + '/../../test-output.html');
-  fs.writeFileSync(__dirname + '/../../test-output.html', object.toHTML(), 'utf8');
+  let path = __dirname + '/../../test-output' + identifier + '.html';
+  console.log('saving to', path);
+  fs.writeFileSync(path, object.toHTML(), 'utf8');
 }

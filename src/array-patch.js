@@ -1,3 +1,5 @@
+'use babel';
+
 import SegmentTree from './segment-tree';
 
 export default class ArrayPatch {
