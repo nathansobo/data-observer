@@ -67,6 +67,36 @@ describe('SegmentTree', () => {
       }
     });
   });
+
+  describe('splitLeft', () => {
+    it('returns a tree that is upper-bounded by the iterator\'s current node', () => {
+      let originalTree = new SegmentTree();
+
+      originalTree.buildIterator().insert(5);
+      originalTree.buildIterator().insert(10);
+      let splitIterator = originalTree.buildIterator();
+      splitIterator.insert(7);
+      let leftTree = splitIterator.splitLeft();
+
+      let leftTreeIterator = leftTree.buildIteratorAtStart();
+      expect(leftTreeIterator.getOutputStart()).to.equal(0);
+      expect(leftTreeIterator.getOutputEnd()).to.equal(5);
+
+      leftTreeIterator.next();
+      expect(leftTreeIterator.getOutputStart()).to.equal(5);
+      expect(leftTreeIterator.getOutputEnd()).to.equal(7);
+
+      expect(leftTreeIterator.next().done).to.be.true;
+
+      // original tree becomes the right tree
+      // nodes to the left of split point are removed
+      let rightTreeIterator = originalTree.buildIteratorAtStart();
+      expect(rightTreeIterator.getOutputStart()).to.equal(0)
+      expect(rightTreeIterator.getOutputEnd()).to.equal(10)
+
+      expect(rightTreeIterator.next().done).to.be.true;
+    });
+  });
 });
 
 function saveHTML(object, identifier='') {

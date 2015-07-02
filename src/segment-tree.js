@@ -7,8 +7,9 @@ const DONE = {done: true};
 
 export default class SegmentTree {
   constructor(randomSeed = Date.now()) {
-    this.root = null;
+    this.randomSeed = randomSeed;
     this.randomGenerator = new Random(randomSeed);
+    this.root = null;
   }
 
   buildIterator() {
@@ -96,6 +97,30 @@ class SegmentTreeIterator {
         }
       }
     }
+  }
+
+  splitLeft() {
+    let originalPriority = this.node.priority;
+    this.node.priority = -1;
+    this.bubbleNodeUp();
+
+    // Our old tree gets everything to the right of the current node
+    this.tree.root = this.node.right;
+    this.node.right.parent = null;
+    this.node.right.inputExtent = this.node.inputLeftExtent + this.node.right.inputExtent;
+    this.node.right.inputLeftExtent = this.node.inputLeftExtent + this.node.right.inputLeftExtent;
+    this.node.right.outputExtent = this.node.outputLeftExtent + this.node.right.outputExtent;
+    this.node.right.outputLeftExtent = this.node.outputLeftExtent + this.node.right.outputLeftExtent;
+
+    // We build a new tree for the current node and everything left of it
+    this.tree = new SegmentTree(this.randomSeed);
+    this.tree.root = this.node;
+    this.node.right = null;
+
+    this.node.priority = originalPriority;
+    this.bubbleNodeDown();
+
+    return this.tree;
   }
 
   updateOutputIndex(outputDelta) {
@@ -210,16 +235,30 @@ class SegmentTreeIterator {
   bubbleNodeUp() {
     while (this.node.parent && this.node.priority < this.node.parent.priority) {
       if (this.node === this.node.parent.left) {
-        this.rotateRight();
+        this.rotateRight(this.node);
       } else {
-        this.rotateLeft();
+        this.rotateLeft(this.node);
       }
     }
   }
 
-  rotateRight() {
-    let root = this.node.parent;
-    let pivot = this.node;
+  bubbleNodeDown() {
+    while (true) {
+      let leftPriority = this.node.left ? this.node.left.priority : Infinity;
+      let rightPriority = this.node.right ? this.node.right.priority : Infinity;
+
+      if (leftPriority < rightPriority && this.node.priority > leftPriority) {
+        this.rotateRight(this.node.left);
+      } else if (this.node.priority > rightPriority)  {
+        this.rotateLeft(this.node.right);
+      } else {
+        break;
+      }
+    }
+  }
+
+  rotateRight(pivot) {
+    let root = pivot.parent;
 
     if (root.parent) {
       if (root === root.parent.left) {
