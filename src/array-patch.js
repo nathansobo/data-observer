@@ -8,14 +8,7 @@ export default class ArrayPatch {
   }
 
   splice(spliceStart, removedCount, addedCount) {
-    let startIterator = this.segmentTree.buildIterator();
-    let endIterator = this.segmentTree.buildIterator();
-    startIterator.insert(spliceStart, false);
-    endIterator.insert(spliceStart + removedCount, true);
-    // let prefix = startIterator.splitLeft();
-    // let suffix = endIterator.splitRight();
-    // this.segmentTree = SegmentTree.join(prefix, suffix);
-    endIterator.updateOutputIndex(addedCount - removedCount);
+    this.segmentTree.splice(spliceStart, removedCount, addedCount);
   }
 
   getChanges() {

@@ -1,6 +1,7 @@
 'use babel';
 
 import {Disposable, Emitter} from 'event-kit';
+import ArrayPatch from './array-patch';
 
 export default class ArrayObservation {
   constructor(array) {
@@ -31,13 +32,16 @@ export default class ArrayObservation {
   }
 
   arrayDidChange(changes) {
-    let splices = [];
+    let patch = new ArrayPatch();
+
     for (let {type, index, removed, addedCount} of changes) {
       if (type === 'splice') {
-        splices.push({index, removed, addedCount});
+        patch.splice(index, removed.length, addedCount);
       }
     }
 
-    setImmediate(() => this.emitter.emit('did-change', splices));
+    setImmediate(() => {
+      this.emitter.emit('did-change', patch.getChanges());
+    });
   }
 }

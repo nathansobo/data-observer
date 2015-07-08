@@ -10,9 +10,9 @@ describe('ArrayObservation', () => {
   function awaitObservedChanges(fn) {
     let disposable = observation.onDidChange((changes) => {
       disposable.dispose();
-      for (let {index, removed, addedCount} of changes) {
-        let result = referenceArray.splice(index, removed.length, observedArray.slice(index, index + addedCount));
-        expect(result).to.eql(removed);
+      for (let {index, removedCount, addedCount} of changes) {
+        let spliceArgs = [index, removedCount].concat(observedArray.slice(index, index + addedCount))
+        referenceArray.splice.apply(referenceArray, spliceArgs);
       }
       fn();
     });
