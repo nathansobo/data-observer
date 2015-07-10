@@ -31,6 +31,10 @@ export default class ScalarMapObservation {
     });
   }
 
+  map(transform) {
+    return new ScalarMapObservation(this, transform);
+  }
+
   operandDidChangeValue(value) {
     this.emitter.emit('did-change-value', this.transform(value));
   }

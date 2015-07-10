@@ -31,6 +31,10 @@ export default class ArrayMapObservation {
     });
   }
 
+  map(transform) {
+    return new ArrayMapObservation(this, transform);
+  }
+
   operandDidChangeValues(changes) {
     this.emitter.emit('did-change-values', changes.map(({index, removedCount, added}) =>
       ({index, removedCount, added: added.map(this.transform)})
