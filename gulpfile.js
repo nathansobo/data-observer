@@ -8,7 +8,7 @@ const isparta = require('isparta');
 const manifest = require('./package.json');
 const config = manifest.nodeBoilerplateOptions;
 const mainFile = manifest.main;
-const destinationFolder = path.dirname(mainFile);
+const destinationFolder = path.join(__dirname, 'dist');
 
 // Remove the built files
 gulp.task('clean', function(cb) {
