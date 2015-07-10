@@ -2,7 +2,7 @@
 
 import {Disposable, Emitter} from 'event-kit';
 import ArrayPatch from './array-patch';
-import MapObservation from './map-observation';
+import ArrayMapObservation from './array-map-observation';
 
 export default class ArrayObservation {
   constructor(array) {
@@ -32,7 +32,7 @@ export default class ArrayObservation {
   }
 
   map(fn) {
-    return new MapObservation(this, fn);
+    return new ArrayMapObservation(this, fn);
   }
 
   arrayDidChange(changes) {

@@ -1,6 +1,6 @@
 import {Disposable, Emitter} from 'event-kit';
 
-export default class MapObservation {
+export default class ArrayMapObservation {
   constructor(operand, transform) {
     this.operand = operand;
     this.transform = transform;
