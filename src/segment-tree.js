@@ -309,7 +309,7 @@ class Node {
     s += '<table>'
 
     s += '<tr>';
-    s += '<td colspan="2">' + this.id + ': ' + this.outputLeftExtent + ', ' + this.outputExtent + '</td>';
+    s += '<td colspan="2">' + this.id + ': ' + this.inputLeftExtent + ', ' + this.outputLeftExtent + '</td>';
     s += '</tr>';
 
     s += '<tr>';
