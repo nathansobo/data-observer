@@ -1,11 +1,11 @@
 'use babel';
 
 import {Disposable, Emitter} from 'event-kit';
+import ScalarMapObservation from './scalar-map-observation';
 
 export default class ObjectObservation {
   constructor(object, ...rest) {
     this.object = object;
-
 
     if (rest.length > 0) {
       this.transform = ((typeof last(rest) === 'function') ? rest.pop() : null);
@@ -47,6 +47,10 @@ export default class ObjectObservation {
         Object.unobserve(this.object, this.objectDidChange);
       }
     });
+  }
+
+  map(transform) {
+    return new ScalarMapObservation(this, transform);
   }
 
   objectDidChange(changes) {

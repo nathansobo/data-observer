@@ -41,4 +41,20 @@ describe('ObjectObservation', () => {
     object.a = 3;
     object.c = 4;
   });
+
+  describe('.prototype.map(fn)', () => {
+    it('applies a transform function over the value of the observation', () => {
+      let object = {a: 'a'};
+      let observation = observe(object, 'a').map(value => value.toUpperCase());
+
+      expect(observation.getValue()).to.equal('A');
+
+      awaitObservation(observation, (value) => {
+        expect(value).to.equal('B');
+        done();
+      });
+
+      object.a = 'b';
+    });
+  });
 });
