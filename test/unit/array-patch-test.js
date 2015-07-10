@@ -1,5 +1,6 @@
 'use babel';
 
+import Random from 'random-seed';
 import ArrayPatch from '../../src/array-patch';
 
 describe('ArrayPatch', () => {
@@ -11,15 +12,20 @@ describe('ArrayPatch', () => {
     input = output.slice();
   });
 
-  function verifyPatch(patch, input, output) {
+  function verifyPatch(patch, input, output, randomSeed) {
     for (let {index, removedCount, addedCount} of patch.getChanges()) {
       input.splice(index, removedCount, ...output.slice(index, index + addedCount));
     }
-    expect(input).to.eql(output);
+
+    let message = 'input and output arrays to be equal';
+    if (randomSeed) {
+      message += ` (random seed: ${randomSeed})`;
+    }
+    assert.deepEqual(input, output, message);
   }
 
   it('has no changes initially', () => {
-    expect(patch.getChanges()).to.eql([]);
+    assert.deepEqual(patch.getChanges(), []);
   });
 
   it('supports disjoint splices', () => {
@@ -29,7 +35,10 @@ describe('ArrayPatch', () => {
     output.splice(4, 1, 'i', 'j');
     patch.splice(4, 1, 2);
 
-    verifyPatch(patch, input, output);
+    assert.deepEqual(patch.getChanges(), [
+      {index: 2, removedCount: 2, addedCount: 1},
+      {index: 4, removedCount: 1, addedCount: 2}
+    ]);
   });
 
   it('supports overlapping splices', () => {
@@ -39,6 +48,48 @@ describe('ArrayPatch', () => {
     output.splice(4, 1, 'k', 'l');
     patch.splice(4, 1, 2);
 
-    verifyPatch(patch, input, output);
+    assert.deepEqual(patch.getChanges(), [{index: 2, removedCount: 1, addedCount: 4}])
+  });
+
+  it('supports insertions', () => {
+    output.splice(2, 0, 'h', 'i');
+    patch.splice(2, 0, 2);
+    assert.deepEqual(patch.getChanges(), [{index: 2, removedCount: 0, addedCount: 2}]);
+  });
+
+  it('supports randomized splices', () => {
+    let alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+    for (var i = 0; i < 100; i++) {
+      let randomSeed = Date.now();
+      let patch = new ArrayPatch(randomSeed);
+      let random = new Random(randomSeed);
+      let output = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      let input = output.slice();
+
+      for (var j = 0; j < 500; j++) {
+        let index = random(output.length);
+        let removedCount = random(output.length - index);
+        let addedCount = random(10);
+        let added = []
+        for (var k = 0; k < addedCount; k++) {
+          added.push(alphabet[random(alphabet.length)]);
+        }
+
+        output.splice(index, removedCount, ...added);
+        patch.splice(index, removedCount, addedCount);
+      }
+
+      verifyPatch(patch, input.slice(), output, randomSeed);
+    }
   });
 });
+
+// Used to debug the tree structure
+function saveHTML(object, identifier='') {
+  let fs = require('fs');
+
+  let path = __dirname + '/../../test-output' + identifier + '.html';
+  console.log('saving to', path);
+  fs.writeFileSync(path, object.toHTML(), 'utf8');
+}

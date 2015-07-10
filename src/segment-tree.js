@@ -24,17 +24,17 @@ export default class SegmentTree {
     let outputEnd = outputStart + removedCount;
     let spliceDelta = addedCount - removedCount;
 
-    let endNode = this.insertNode(outputEnd, false);
-    endNode.isEndOfChange = true;
+    let startNode = this.insertSpliceBoundary(outputStart, true);
+    let endNode = this.insertSpliceBoundary(outputEnd, false);
+    startNode.priority = -1;
+    this.bubbleNodeUp(startNode);
     endNode.priority = -2;
     this.bubbleNodeUp(endNode);
 
-    let startNode = this.insertNode(outputStart, true);
-    startNode.isStartOfChange = true;
-    startNode.priority = -1;
-    this.bubbleNodeUp(startNode);
-
     startNode.right = null;
+    startNode.inputExtent = startNode.inputLeftExtent;
+    startNode.outputExtent = startNode.outputLeftExtent;
+
     endNode.outputLeftExtent += spliceDelta;
     endNode.outputExtent += spliceDelta;
 
@@ -44,51 +44,120 @@ export default class SegmentTree {
     this.bubbleNodeDown(endNode);
   }
 
-  insertNode(outputIndex, insertingChangeStart) {
+  insertSpliceBoundary(boundaryOutputIndex, insertingChangeStart) {
     let insertingChangeEnd = !insertingChangeStart;
+
     let node = this.root;
 
     if (!node) {
-      return this.root = new Node(null, outputIndex, outputIndex);
+      this.root = new Node(null, boundaryOutputIndex, boundaryOutputIndex);
+      this.root.isChangeStart = insertingChangeStart;
+      this.root.isChangeEnd = insertingChangeEnd;
+      return this.root;
     }
 
     let inputOffset = 0;
     let outputOffset = 0;
-
     let maxInputIndex = Infinity;
+    let nodeInputIndex, nodeOutputIndex;
+    let closestStartNode, closestEndNode;
 
     while (true) {
-      let inputStart = inputOffset + (node.left ? node.left.inputExtent : 0)
-      let outputStart = outputOffset + (node.left ? node.left.outputExtent : 0)
-      let inputEnd = inputOffset + node.inputLeftExtent;
-      let outputEnd = outputOffset + node.outputLeftExtent;
+      nodeInputIndex = inputOffset + node.inputLeftExtent;
+      nodeOutputIndex = outputOffset + node.outputLeftExtent;
 
-      if (outputIndex === outputEnd) {
-        return node;
-      } else if (outputIndex < outputEnd) {
-        if (node.left) {
-          maxInputIndex = inputEnd;
-          node = node.left;
-        } else if (insertingChangeEnd && node.isEndOfChange) {
+      if (node.isChangeStart) {
+        let node = visitChangeStart();
+        if (node) {
           return node;
-        } else {
-          let outputLeftExtent = outputIndex - outputOffset;
-          let inputLeftExtent = Math.min(outputLeftExtent, node.inputLeftExtent);
-          return node.left = new Node(node, inputLeftExtent, outputLeftExtent);
         }
       } else {
-        if (node.right) {
-          inputOffset += node.inputLeftExtent;
-          outputOffset += node.outputLeftExtent;
-          node = node.right;
-        } else if (insertingChangeStart && node.isStartOfChange) {
+        let node = visitChangeEnd();
+        if (node) {
           return node;
-        } else {
-          let outputLeftExtent = outputIndex - outputEnd;
-          let inputLeftExtent = Math.min(outputLeftExtent, maxInputIndex - inputEnd);
-          return node.right = new Node(node, inputLeftExtent, outputLeftExtent);
         }
       }
+    }
+
+    function visitChangeStart() {
+      if (boundaryOutputIndex < nodeOutputIndex) {
+        if (node.left) {
+          closestEndNode = null;
+          descendLeft();
+        } else {
+          return insertLeftNode();
+        }
+      } else { // boundaryOutputIndex >= nodeOutputIndex
+        if (node.right) {
+          closestStartNode = node;
+          descendRight();
+        } else {
+          if (insertingChangeStart) {
+            return node;
+          } else { // insertingChangeEnd
+            if (closestEndNode) {
+              return closestEndNode;
+            } else {
+              return insertRightNode();
+            }
+          }
+        }
+      }
+    }
+
+    function visitChangeEnd() {
+      if (boundaryOutputIndex <= nodeOutputIndex) {
+        if (node.left) {
+          closestEndNode = node;
+          descendLeft();
+        } else {
+          if (insertingChangeStart) {
+            if (closestStartNode) {
+              return closestStartNode;
+            } else {
+              return insertLeftNode();
+            }
+          } else { // insertingChangeEnd
+            return node;
+          }
+        }
+      } else { // boundaryOutputIndex > nodeOutputIndex
+        if (node.right) {
+          closestStartNode = null;
+          descendRight();
+        } else {
+          return insertRightNode();
+        }
+      }
+    }
+
+    function descendLeft() {
+      maxInputIndex = nodeInputIndex;
+      node = node.left;
+    }
+
+    function descendRight() {
+      inputOffset += node.inputLeftExtent;
+      outputOffset += node.outputLeftExtent;
+      node = node.right;
+    }
+
+    function insertLeftNode() {
+      let outputLeftExtent = boundaryOutputIndex - outputOffset;
+      let inputLeftExtent = Math.min(outputLeftExtent, node.inputLeftExtent);
+      let newNode = new Node(node, inputLeftExtent, outputLeftExtent);
+      newNode.isChangeStart = insertingChangeStart;
+      newNode.isChangeEnd = insertingChangeEnd;
+      return node.left = newNode;
+    }
+
+    function insertRightNode(argument) {
+      let outputLeftExtent = boundaryOutputIndex - nodeOutputIndex;
+      let inputLeftExtent = Math.min(outputLeftExtent, maxInputIndex - nodeInputIndex);
+      let newNode = new Node(node, inputLeftExtent, outputLeftExtent);
+      newNode.isChangeStart = insertingChangeStart;
+      newNode.isChangeEnd = insertingChangeEnd;
+      return node.right = newNode;
     }
   }
 
@@ -221,7 +290,7 @@ class SegmentTreeIterator {
   }
 
   inChange() {
-    return !!this.node && this.node.isEndOfChange;
+    return !!this.node && this.node.isChangeEnd;
   }
 
   setNode(node) {
@@ -303,8 +372,8 @@ class Node {
 
     this.id = ++idCounter;
     this.priority = Infinity;
-    this.isStartOfChange = false;
-    this.isEndOfChange = false;
+    this.isChangeStart = false;
+    this.isChangeEnd = false;
   }
 
   toHTML() {
@@ -316,7 +385,11 @@ class Node {
     s += '<table>'
 
     s += '<tr>';
-    s += '<td colspan="2">' + this.id + ': ' + this.inputLeftExtent + ', ' + this.outputLeftExtent + '</td>';
+
+    let changeStart = this.isChangeStart ? '&lt;&lt; ' : ''
+    let changeEnd = this.isChangeEnd ? ' &gt;&gt;' : ''
+
+    s += '<td colspan="2">' + changeStart + this.inputLeftExtent + ', ' + this.outputLeftExtent + changeEnd + '</td>';
     s += '</tr>';
 
     s += '<tr>';

@@ -3,8 +3,8 @@
 import SegmentTree from './segment-tree';
 
 export default class ArrayPatch {
-  constructor() {
-    this.segmentTree = new SegmentTree();
+  constructor(randomSeed) {
+    this.segmentTree = new SegmentTree(randomSeed);
   }
 
   splice(spliceStart, removedCount, addedCount) {
