@@ -1,3 +1,5 @@
+'use babel';
+
 import {Disposable, Emitter} from 'event-kit';
 
 export default class ArrayMapObservation {

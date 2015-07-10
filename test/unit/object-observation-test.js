@@ -1,3 +1,5 @@
+'use babel';
+
 import observe from '../../src/observe';
 
 describe('ObjectObservation', () => {
