@@ -10,7 +10,7 @@ export default class ArrayObservation {
     this.arrayDidChange = this.arrayDidChange.bind(this);
   }
 
-  onDidChange(fn) {
+  onDidChangeValues(fn) {
     if (!this.disposable) {
       Array.observe(this.array, this.arrayDidChange);
 

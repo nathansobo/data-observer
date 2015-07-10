@@ -8,7 +8,7 @@ describe('ArrayObservation', () => {
   var referenceArray;
 
   function awaitObservedChanges(fn) {
-    let disposable = observation.onDidChange((changes) => {
+    let disposable = observation.onDidChangeValues((changes) => {
       disposable.dispose();
       for (let {index, removedCount, addedCount} of changes) {
         let spliceArgs = [index, removedCount].concat(observedArray.slice(index, index + addedCount))
