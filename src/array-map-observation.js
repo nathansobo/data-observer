@@ -7,7 +7,7 @@ export default class ArrayMapObservation {
     this.operand = operand;
     this.transform = transform;
     this.emitter = new Emitter();
-    this.operandDidChange = this.operandDidChange.bind(this);
+    this.operandDidChangeValues = this.operandDidChangeValues.bind(this);
     this.subscriberCount = 0;
     this.operandDisposable = null;
   }
@@ -18,7 +18,7 @@ export default class ArrayMapObservation {
 
   onDidChangeValues(fn) {
     if (++this.subscriberCount === 1) {
-      this.operandDisposable = this.operand.onDidChangeValues(this.operandDidChange);
+      this.operandDisposable = this.operand.onDidChangeValues(this.operandDidChangeValues);
     }
 
     let disposable = this.emitter.on('did-change-values', fn);
@@ -31,7 +31,7 @@ export default class ArrayMapObservation {
     });
   }
 
-  operandDidChange(changes) {
+  operandDidChangeValues(changes) {
     this.emitter.emit('did-change-values', changes.map(({index, removedCount, added}) =>
       ({index, removedCount, added: added.map(this.transform)})
     ));
