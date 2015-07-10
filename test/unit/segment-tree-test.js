@@ -33,7 +33,6 @@ describe('SegmentTree', () => {
       let indices, tree;
 
       for (var i = 0; i < 1; i++) {
-        global.debug = false
         indices = []
         randomSeed = Date.now();
         let random = new Random(randomSeed);
