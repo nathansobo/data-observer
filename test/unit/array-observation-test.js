@@ -3,28 +3,14 @@
 import observe from '../../src/observe';
 
 describe('ArrayObservation', () => {
-  var observation;
-  var observedArray;
-  var referenceArray;
+  it('invokes listeners when the array changes', (done) => {
+    let observedArray = ['a', 'b', 'c', 'd', 'e'];
 
-  function awaitObservedChanges(fn) {
-    let disposable = observation.onDidChangeValues((changes) => {
-      disposable.dispose();
-      for (let {index, removedCount, addedCount} of changes) {
-        let spliceArgs = [index, removedCount].concat(observedArray.slice(index, index + addedCount))
-        referenceArray.splice.apply(referenceArray, spliceArgs);
-      }
-      fn();
-    });
-  }
-
-  it('summarizes disjoint splices on the array', (done) => {
-    observedArray = ['a', 'b', 'c', 'd', 'e'];
-    referenceArray = observedArray.slice();
-    observation = observe(observedArray);
-
-    awaitObservedChanges(() => {
-      expect(referenceArray).to.eql(observedArray);
+    awaitObservation(observe(observedArray), (changes) => {
+      expect(changes).to.eql([
+        {index: 1, removedCount: 1, added: ['f', 'g']},
+        {index: 4, removedCount: 1, added: ['h', 'i']}
+      ]);
       done();
     });
 
@@ -32,3 +18,10 @@ describe('ArrayObservation', () => {
     observedArray.splice(4, 1, 'h', 'i');
   });
 });
+
+function awaitObservation(observation, fn) {
+  let disposable = observation.onDidChangeValues((changes) => {
+    disposable.dispose();
+    fn(changes);
+  });
+}

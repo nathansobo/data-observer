@@ -8,25 +8,20 @@ export default class ArrayObservation {
     this.array = array;
     this.emitter = new Emitter();
     this.arrayDidChange = this.arrayDidChange.bind(this);
+    this.subscriberCount = 0;
   }
 
   onDidChangeValues(fn) {
-    if (!this.disposable) {
+    if (++this.subscriberCount === 1) {
       Array.observe(this.array, this.arrayDidChange);
-
-      this.disposable = new Disposable(function() {
-        Array.unobserve(this.array, this.arrayDidChange);
-      });
     }
-    this.subscriberCount++;
 
     let disposable = this.emitter.on('did-change', fn);
 
     return new Disposable(() => {
       disposable.dispose();
-      this.subscriberCount--;
-      if (this.subscriberCount === 0) {
-        this.disposable.dispose();
+      if (--this.subscriberCount === 0) {
+        Array.unobserve(this.array, this.arrayDidChange);
       }
     });
   }
@@ -40,8 +35,12 @@ export default class ArrayObservation {
       }
     }
 
+    // setImmediate allows uncaught exceptions to be reported in Node 0.12.0
     setImmediate(() => {
-      this.emitter.emit('did-change', patch.getChanges());
+      let coalescedChanges = patch.getChanges().map(({index, removedCount, addedCount}) => (
+        {index, removedCount, added: this.array.slice(index, index + addedCount)}
+      ));
+      this.emitter.emit('did-change', coalescedChanges);
     });
   }
 }
