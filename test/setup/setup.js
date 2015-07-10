@@ -13,4 +13,22 @@ module.exports = function() {
     delete global.spy;
     this.sandbox.restore();
   });
+
+  function awaitObservation(observation, fn) {
+    let disposable;
+    let listener = (changes) => {
+      disposable.dispose();
+      fn(changes);
+    };
+
+    if (typeof observation.onDidChangeValue === 'function') {
+      disposable = observation.onDidChangeValue(listener);
+    } else if (typeof observation.onDidChangeValues === 'function') {
+      disposable = observation.onDidChangeValues(listener);
+    } else {
+      throw new Error("Not an observation");
+    }
+  }
+
+  global.awaitObservation = awaitObservation;
 };

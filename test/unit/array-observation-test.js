@@ -38,10 +38,3 @@ describe('ArrayObservation', () => {
     });
   });
 });
-
-function awaitObservation(observation, fn) {
-  let disposable = observation.onDidChangeValues((changes) => {
-    disposable.dispose();
-    fn(changes);
-  });
-}
