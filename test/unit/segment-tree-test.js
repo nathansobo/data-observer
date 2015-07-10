@@ -32,7 +32,7 @@ describe('SegmentTree', () => {
     it('maintains insertion indices after rebalancing', () => {
       let indices, tree;
 
-      for (var i = 0; i < 1; i++) {
+      for (var i = 0; i < 10; i++) {
         indices = []
         randomSeed = Date.now();
         let random = new Random(randomSeed);
