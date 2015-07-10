@@ -2,6 +2,7 @@
 
 import {Disposable, Emitter} from 'event-kit';
 import ArrayPatch from './array-patch';
+import MapObservation from './map-observation';
 
 export default class ArrayObservation {
   constructor(array) {
@@ -11,12 +12,16 @@ export default class ArrayObservation {
     this.subscriberCount = 0;
   }
 
+  getValues() {
+    return this.array.slice();
+  }
+
   onDidChangeValues(fn) {
     if (++this.subscriberCount === 1) {
       Array.observe(this.array, this.arrayDidChange);
     }
 
-    let disposable = this.emitter.on('did-change', fn);
+    let disposable = this.emitter.on('did-change-values', fn);
 
     return new Disposable(() => {
       disposable.dispose();
@@ -24,6 +29,10 @@ export default class ArrayObservation {
         Array.unobserve(this.array, this.arrayDidChange);
       }
     });
+  }
+
+  map(fn) {
+    return new MapObservation(this, fn);
   }
 
   arrayDidChange(changes) {
@@ -40,7 +49,7 @@ export default class ArrayObservation {
       let coalescedChanges = patch.getChanges().map(({index, removedCount, addedCount}) => (
         {index, removedCount, added: this.array.slice(index, index + addedCount)}
       ));
-      this.emitter.emit('did-change', coalescedChanges);
+      this.emitter.emit('did-change-values', coalescedChanges);
     });
   }
 }

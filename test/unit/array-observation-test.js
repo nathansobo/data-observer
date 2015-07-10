@@ -17,6 +17,26 @@ describe('ArrayObservation', () => {
     observedArray.splice(1, 1, 'f', 'g');
     observedArray.splice(4, 1, 'h', 'i');
   });
+
+  describe('.prototype.map(fn)', () => {
+    it('applies a transform function over the values of the array', (done) => {
+      let observedArray = ['a', 'b', 'c', 'd', 'e'];
+      let observation = observe(observedArray).map(value => value.toUpperCase());
+
+      expect(observation.getValues()).to.eql(['A', 'B', 'C', 'D', 'E']);
+
+      awaitObservation(observation, (changes) => {
+        expect(changes).to.eql([
+          {index: 1, removedCount: 1, added: ['F', 'G']},
+          {index: 4, removedCount: 1, added: ['H', 'I']}
+        ]);
+        done();
+      });
+
+      observedArray.splice(1, 1, 'f', 'g');
+      observedArray.splice(4, 1, 'h', 'i');
+    });
+  });
 });
 
 function awaitObservation(observation, fn) {
