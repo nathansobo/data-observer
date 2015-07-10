@@ -31,4 +31,14 @@ describe('ArrayPatch', () => {
 
     verifyPatch(patch, input, output);
   });
+
+  it('supports overlapping splices', () => {
+    output.splice(2, 1, 'h', 'i', 'j');
+    patch.splice(2, 1, 3);
+
+    output.splice(4, 1, 'k', 'l');
+    patch.splice(4, 1, 2);
+
+    verifyPatch(patch, input, output);
+  });
 });

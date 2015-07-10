@@ -24,12 +24,13 @@ export default class SegmentTree {
     let outputEnd = outputStart + removedCount;
     let spliceDelta = addedCount - removedCount;
 
-    let endNode = this.insertNode(outputEnd);
+    let endNode = this.insertNode(outputEnd, false);
     endNode.isEndOfChange = true;
     endNode.priority = -2;
     this.bubbleNodeUp(endNode);
 
-    let startNode = this.insertNode(outputStart);
+    let startNode = this.insertNode(outputStart, true);
+    startNode.isStartOfChange = true;
     startNode.priority = -1;
     this.bubbleNodeUp(startNode);
 
@@ -43,7 +44,8 @@ export default class SegmentTree {
     this.bubbleNodeDown(endNode);
   }
 
-  insertNode(outputIndex) {
+  insertNode(outputIndex, insertingChangeStart) {
+    let insertingChangeEnd = !insertingChangeStart;
     let node = this.root;
 
     if (!node) {
@@ -67,6 +69,8 @@ export default class SegmentTree {
         if (node.left) {
           maxInputIndex = inputEnd;
           node = node.left;
+        } else if (insertingChangeEnd && node.isEndOfChange) {
+          return node;
         } else {
           let outputLeftExtent = outputIndex - outputOffset;
           let inputLeftExtent = Math.min(outputLeftExtent, node.inputLeftExtent);
@@ -77,6 +81,8 @@ export default class SegmentTree {
           inputOffset += node.inputLeftExtent;
           outputOffset += node.outputLeftExtent;
           node = node.right;
+        } else if (insertingChangeStart && node.isStartOfChange) {
+          return node;
         } else {
           let outputLeftExtent = outputIndex - outputEnd;
           let inputLeftExtent = Math.min(outputLeftExtent, maxInputIndex - inputEnd);
@@ -297,6 +303,7 @@ class Node {
 
     this.id = ++idCounter;
     this.priority = Infinity;
+    this.isStartOfChange = false;
     this.isEndOfChange = false;
   }
 
