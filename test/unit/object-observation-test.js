@@ -43,6 +43,12 @@ describe('ObjectObservation', () => {
     object.c = 4;
   });
 
+  it('can observe a whole object and transform its value', () => {
+    let object = {a: 1, b: 2};
+    let observation = observe(object, o => ({c: o.a + o.b}));
+    expect(observation.getValue()).to.eql({c: 3});
+  });
+
   describe('.prototype.map(fn)', (done) => {
     it('applies a transform function over the value of the observation', () => {
       let object = {a: 'a'};

@@ -30,7 +30,11 @@ export default class ObjectObservation {
         return this.transform.apply(null, propertyValues);
       }
     } else {
-      return this.object;
+      if (this.transform) {
+        return this.transform.call(null, this.object);
+      } else {
+        return this.object;
+      }
     }
   }
 
