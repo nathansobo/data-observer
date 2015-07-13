@@ -1,6 +1,6 @@
 {
   "name": "data-observer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Unobtrusively observe essential application state.",
   "main": "dist/index.js",
   "scripts": {
