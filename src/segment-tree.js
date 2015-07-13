@@ -1,6 +1,7 @@
 'use babel';
 
 import Random from 'random-seed';
+import SegmentTreeNode from './segment-tree-node';
 
 const NOT_DONE = {done: false};
 const DONE = {done: true};
@@ -50,7 +51,7 @@ export default class SegmentTree {
     let node = this.root;
 
     if (!node) {
-      this.root = new Node(null, boundaryOutputIndex, boundaryOutputIndex);
+      this.root = new SegmentTreeNode(null, boundaryOutputIndex, boundaryOutputIndex);
       this.root.isChangeStart = insertingChangeStart;
       this.root.isChangeEnd = insertingChangeEnd;
       return this.root;
@@ -145,19 +146,21 @@ export default class SegmentTree {
     function insertLeftNode() {
       let outputLeftExtent = boundaryOutputIndex - outputOffset;
       let inputLeftExtent = Math.min(outputLeftExtent, node.inputLeftExtent);
-      let newNode = new Node(node, inputLeftExtent, outputLeftExtent);
+      let newNode = new SegmentTreeNode(node, inputLeftExtent, outputLeftExtent);
       newNode.isChangeStart = insertingChangeStart;
       newNode.isChangeEnd = insertingChangeEnd;
-      return node.left = newNode;
+      node.left = newNode;
+      return newNode;
     }
 
-    function insertRightNode(argument) {
+    function insertRightNode() {
       let outputLeftExtent = boundaryOutputIndex - nodeOutputIndex;
       let inputLeftExtent = Math.min(outputLeftExtent, maxInputIndex - nodeInputIndex);
-      let newNode = new Node(node, inputLeftExtent, outputLeftExtent);
+      let newNode = new SegmentTreeNode(node, inputLeftExtent, outputLeftExtent);
       newNode.isChangeStart = insertingChangeStart;
       newNode.isChangeEnd = insertingChangeEnd;
-      return node.right = newNode;
+      node.right = newNode;
+      return newNode;
     }
   }
 
@@ -178,7 +181,7 @@ export default class SegmentTree {
 
       if (leftChildPriority < rightChildPriority && leftChildPriority < node.priority) {
         this.rotateNodeRight(node.left);
-      } else if (rightChildPriority < node.priority)  {
+      } else if (rightChildPriority < node.priority) {
         this.rotateNodeLeft(node.right);
       } else {
         break;
@@ -301,8 +304,8 @@ class SegmentTreeIterator {
         this.inputStart = this.inputOffset + node.left.inputExtent;
         this.outputStart = this.outputOffset + node.left.outputExtent;
       } else {
-        this.inputStart = this.inputOffset
-        this.outputStart = this.outputOffset
+        this.inputStart = this.inputOffset;
+        this.outputStart = this.outputOffset;
       }
 
       this.inputEnd = this.inputOffset + node.inputLeftExtent;
@@ -357,60 +360,5 @@ class SegmentTreeIterator {
     this.inputOffset += this.node.inputLeftExtent;
     this.outputOffset += this.node.outputLeftExtent;
     this.setNode(this.node.right);
-  }
-}
-
-let idCounter = 0;
-
-class Node {
-  constructor(parent, inputLeftExtent, outputLeftExtent) {
-    this.parent = parent;
-    this.inputLeftExtent = inputLeftExtent;
-    this.outputLeftExtent = outputLeftExtent;
-    this.inputExtent = inputLeftExtent;
-    this.outputExtent = outputLeftExtent;
-
-    this.id = ++idCounter;
-    this.priority = Infinity;
-    this.isChangeStart = false;
-    this.isChangeEnd = false;
-  }
-
-  toHTML() {
-    let s = '<style>';
-    s += 'table { width: 100%; }'
-    s += 'td { width: 50%; text-align: center; border: 1px solid gray; white-space: nowrap; }'
-    s += '</style>';
-
-    s += '<table>'
-
-    s += '<tr>';
-
-    let changeStart = this.isChangeStart ? '&lt;&lt; ' : ''
-    let changeEnd = this.isChangeEnd ? ' &gt;&gt;' : ''
-
-    s += '<td colspan="2">' + changeStart + this.inputLeftExtent + ', ' + this.outputLeftExtent + changeEnd + '</td>';
-    s += '</tr>';
-
-    s += '<tr>';
-    s += '<td>';
-    if (this.left) {
-      s += this.left.toHTML();
-    } else {
-      s += '&nbsp;'
-    }
-    s += '</td>';
-    s += '<td>';
-    if (this.right) {
-      s += this.right.toHTML();
-    } else {
-      s += '&nbsp;'
-    }
-    s += '</td>';
-    s += '</tr>';
-
-    s += '</table>';
-
-    return s;
   }
 }

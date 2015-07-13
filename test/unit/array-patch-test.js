@@ -48,7 +48,7 @@ describe('ArrayPatch', () => {
     output.splice(4, 1, 'k', 'l');
     patch.splice(4, 1, 2);
 
-    assert.deepEqual(patch.getChanges(), [{index: 2, removedCount: 1, addedCount: 4}])
+    assert.deepEqual(patch.getChanges(), [{index: 2, removedCount: 1, addedCount: 4}]);
   });
 
   it('supports insertions', () => {
@@ -71,7 +71,7 @@ describe('ArrayPatch', () => {
         let index = random(output.length);
         let removedCount = random(output.length - index);
         let addedCount = random(10);
-        let added = []
+        let added = [];
         for (var k = 0; k < addedCount; k++) {
           added.push(alphabet[random(alphabet.length)]);
         }
@@ -84,12 +84,3 @@ describe('ArrayPatch', () => {
     }
   });
 });
-
-// Used to debug the tree structure
-function saveHTML(object, identifier='') {
-  let fs = require('fs');
-
-  let path = __dirname + '/../../test-output' + identifier + '.html';
-  console.log('saving to', path);
-  fs.writeFileSync(path, object.toHTML(), 'utf8');
-}

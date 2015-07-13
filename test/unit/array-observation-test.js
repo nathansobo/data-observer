@@ -1,6 +1,7 @@
 'use babel';
 
-import observe from '../../src/observe';
+import observe from '../../src/index';
+import {awaitObservation} from '../setup/helpers';
 
 describe('ArrayObservation', () => {
   it('invokes listeners when the array changes', (done) => {

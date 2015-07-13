@@ -1,6 +1,7 @@
 'use babel';
 
-import observe from '../../src/observe';
+import observe from '../../src/index';
+import {awaitObservation} from '../setup/helpers';
 
 describe('ObjectObservation', () => {
   it('invokes listeners when the object changes', (done) => {
@@ -13,7 +14,7 @@ describe('ObjectObservation', () => {
     object.a = 3;
   });
 
-  it('can observe a single property', () => {
+  it('can observe a single property', (done) => {
     let object = {a: 1, b: 2};
     let observation = observe(object, 'a');
 
@@ -27,7 +28,7 @@ describe('ObjectObservation', () => {
     object.a = 3;
   });
 
-  it('can observe multiple properties, combined into a single value with a function', () => {
+  it('can observe multiple properties, combined into a single value with a function', (done) => {
     let object = {a: 1, b: 2, c: 3};
     let observation = observe(object, 'a', 'b', 'c', (a, b, c) => a + b + c);
 
@@ -42,7 +43,7 @@ describe('ObjectObservation', () => {
     object.c = 4;
   });
 
-  describe('.prototype.map(fn)', () => {
+  describe('.prototype.map(fn)', (done) => {
     it('applies a transform function over the value of the observation', () => {
       let object = {a: 'a'};
       let observation = observe(object, 'a').map(value => value.toUpperCase());

@@ -15,10 +15,10 @@
   "unused"        : true,
   "strict"        : false,
   "maxparams"     : 4,
-  "maxdepth"      : 2,
-  "maxstatements" : 15,
-  "maxcomplexity" : 10,
-  "maxlen"        : 200,
+  "maxdepth"      : 0,
+  "maxstatements" : 0,
+  "maxcomplexity" : 0,
+  "maxlen"        : 0,
 
   "asi"           : false,
   "boss"          : false,
@@ -66,6 +66,7 @@
     "beforeEach": true,
     "afterEach": true,
     "it": true,
-    "expect": true
+    "expect": true,
+    "assert": true
   }
 }

@@ -23,7 +23,7 @@ export default class ArrayPatch {
           addedCount: iterator.getOutputEnd() - iterator.getOutputStart()
         });
       }
-    } while (!iterator.next().done)
+    } while (!iterator.next().done);
 
     return changes;
   }
